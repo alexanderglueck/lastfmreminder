@@ -64,7 +64,7 @@ class CheckScrobbles extends Command
             $lastPlayedTimestamp = $jsonResponse['recenttracks']['track'][0]['date']['uts'];
 
             $carbon = Carbon::createFromTimestampUTC($lastPlayedTimestamp);
-            if ($carbon->greaterThan(now()->subHours(3))) {
+            if ($carbon->greaterThan(now()->subHours(24))) {
                 // A song was played within the last 24 hours
                 continue;
             }
