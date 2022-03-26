@@ -1,0 +1,29 @@
+version: '3.7'
+services:
+  web:
+    image: nginx:latest
+    ports:
+      - "8080:80"
+    volumes:
+      - ./:/app
+      - .docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+    environment:
+      XDEBUG_CONFIG: remote_host=host.docker.internal
+    depends_on:
+      - app
+
+  app:
+    build: .
+    depends_on:
+      - mysql
+      - mailhog
+    volumes:
+      - ./:/app
+
+  mailhog:
+    image: mailhog/mailhog
+    logging:
+      driver: 'none'  # disable saving logs
+    ports:
+      - 1025:1025
+      - 8025:8025
