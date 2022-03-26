@@ -11,6 +11,12 @@ class DisconnectReminder extends Mailable
 {
     use Queueable, SerializesModels;
 
+    public function __construct(public string $username)
+    {
+        //
+    }
+
+
     /**
      * Build the message.
      *
