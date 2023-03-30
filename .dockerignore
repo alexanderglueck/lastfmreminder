@@ -12,3 +12,4 @@ Dockerfile.dist
 docker-compose.yml
 docker-compose.dist.yml
 .git/
+.env
