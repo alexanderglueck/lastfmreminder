@@ -5,25 +5,49 @@ namespace App\Mail;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
+use Illuminate\Mail\Mailables\Content;
+use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
 class DisconnectReminder extends Mailable
 {
     use Queueable, SerializesModels;
 
+    /**
+     * Create a new message instance.
+     */
     public function __construct(public string $username)
     {
         //
     }
 
+    /**
+     * Get the message envelope.
+     */
+    public function envelope(): Envelope
+    {
+        return new Envelope(
+            subject: 'Disconnect Reminder',
+        );
+    }
 
     /**
-     * Build the message.
-     *
-     * @return $this
+     * Get the message content definition.
      */
-    public function build()
+    public function content(): Content
     {
-        return $this->markdown('mail.disconnect-reminder');
+        return new Content(
+            markdown: 'mail.disconnect-reminder',
+        );
+    }
+
+    /**
+     * Get the attachments for the message.
+     *
+     * @return array<int, \Illuminate\Mail\Mailables\Attachment>
+     */
+    public function attachments(): array
+    {
+        return [];
     }
 }
