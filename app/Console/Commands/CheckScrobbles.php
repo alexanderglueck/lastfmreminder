@@ -59,6 +59,11 @@ class CheckScrobbles extends Command
                 continue;
             }
 
+            if (isset($jsonResponse['recenttracks']['track'][0]['@attr']['nowplaying'])) {
+                // A song is playing right now
+                continue;
+            }
+
             $lastPlayedTimestamp = $jsonResponse['recenttracks']['track'][0]['date']['uts'];
 
             $carbon = Carbon::createFromTimestampUTC($lastPlayedTimestamp);
