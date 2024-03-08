@@ -15,7 +15,6 @@ services:
   app:
     build: .
     depends_on:
-      - mysql
       - mailhog
     volumes:
       - ./:/app
