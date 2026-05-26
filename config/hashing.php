@@ -31,6 +31,7 @@ return [
     'bcrypt' => [
         'rounds' => env('BCRYPT_ROUNDS', 12),
         'verify' => true,
+        'limit' => null,
     ],
 
     /*
@@ -50,5 +51,18 @@ return [
         'time' => 4,
         'verify' => true,
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Rehash On Login
+    |--------------------------------------------------------------------------
+    |
+    | Setting this option to true will tell Laravel to automatically rehash
+    | the user's password during login if the configured work factor for
+    | the algorithm has changed, allowing graceful upgrades over time.
+    |
+    */
+
+    'rehash_on_login' => true,
 
 ];
