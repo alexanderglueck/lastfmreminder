@@ -1,0 +1,43 @@
+name: Build & deploy (self-hosted)
+
+# Builds the production images ON the server (self-hosted runner) into the local
+# Docker daemon, then rolls the containers IF this app is hosted there.
+#
+# Triggered on push to the default branch ONLY — never on pull_request — so a fork
+# PR can never execute on the self-hosted runner (safe for public repos).
+on:
+  push:
+    branches: [master]
+  workflow_dispatch: {}
+
+concurrency:
+  group: build-lastfmreminder
+  cancel-in-progress: true
+
+jobs:
+  build-and-deploy:
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build production images (php-fpm, then nginx)
+        run: |
+          set -euo pipefail
+          docker build -f Dockerfile.dist -t lastfmreminder:latest .
+          docker build -f docker/nginx.Dockerfile -t lastfmreminder-web:latest .
+
+      - name: Deploy if hosted on this server
+        run: |
+          set -euo pipefail
+          COMPOSE=/srv/server-config/apps/lastfmreminder/compose.yml
+          if [ -f "$COMPOSE" ]; then
+            echo "Compose present -> rolling lastfmreminder to the freshly built images"
+            docker compose -f "$COMPOSE" up -d
+          else
+            echo "No compose at $COMPOSE -> images built and stored only (server is acting as CI)."
+            echo "Add apps/lastfmreminder/compose.yml to server-config to enable deploys."
+          fi
+
+      - name: Prune dangling build layers
+        if: always()
+        run: docker image prune -f

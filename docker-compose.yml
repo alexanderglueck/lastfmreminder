@@ -2,7 +2,7 @@ services:
   web:
     image: nginx:latest
     ports:
-      - "8080:80"
+      - "8087:80"
     volumes:
       - ./:/app
       - .docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
@@ -23,5 +23,5 @@ services:
     logging:
       driver: 'none'  # disable saving logs
     ports:
-      - 1025:1025
-      - 8025:8025
+      - "1027:1025"
+      - "8027:8025"

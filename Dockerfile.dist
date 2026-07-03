@@ -1,0 +1,72 @@
+# Production php-fpm image for lastfmreminder. The dev Dockerfile productionized:
+# same php:8.5-fpm base and extensions (minus xdebug — dev only), Vite assets built
+# in a separate node-20 stage, composer --no-dev, source baked in. Served by the
+# nginx image (docker/nginx.Dockerfile); the scheduler reuses this same image.
+
+# syntax=docker/dockerfile:1
+
+########################################
+# Stage 1 — build Vite assets (Vite 7 needs node 20+)
+########################################
+FROM node:20-bookworm-slim AS assets
+WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm ci
+COPY . .
+RUN npm run build
+
+########################################
+# Stage 2 — runtime (from the dev Dockerfile, xdebug removed)
+########################################
+FROM php:8.5-fpm
+WORKDIR /app
+
+ADD https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions /usr/local/bin/
+
+RUN chmod +x /usr/local/bin/install-php-extensions && sync && \
+    install-php-extensions pdo_mysql bcmath pcntl zip gd imagick exif intl soap
+
+RUN apt-get update -y && apt-get install -y sendmail optipng pngquant unzip
+
+ARG HOST_USER_ID=1000
+ARG HOST_GROUP_ID=1000
+
+ENV HOST_USER_ID=$HOST_USER_ID
+ENV HOST_GROUP_ID=$HOST_GROUP_ID
+
+RUN \
+  if [ $(getent group ${HOST_GROUP_ID}) ]; then \
+    useradd  -r -u ${HOST_USER_ID} dockeruser; \
+  else \
+    groupadd -g ${HOST_GROUP_ID} dockergroup && \
+    useradd -r -u ${HOST_USER_ID} -g dockergroup dockeruser; \
+  fi
+
+RUN curl -sS https://getcomposer.org/installer | \
+  php -- --install-dir=/usr/local/bin --filename=composer
+
+# PHP runtime config (16M uploads, 512M memory) — from .docker/php/uploads.ini.
+COPY docker/php-uploads.ini /usr/local/etc/php/conf.d/zz-app.ini
+
+# PHP deps first for layer caching; production flags (no dev deps).
+COPY composer.json composer.lock ./
+RUN composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader --no-scripts
+
+# App source, then the compiled assets from the node stage.
+COPY . .
+COPY --from=assets /app/public/build ./public/build
+
+RUN composer dump-autoload --optimize \
+  && mkdir -p /home/dockeruser \
+  && chown -R dockeruser:dockergroup /home/dockeruser \
+  && chown -R dockeruser:dockergroup /app
+
+COPY docker/entrypoint.sh /usr/local/bin/app-entrypoint
+RUN chmod +x /usr/local/bin/app-entrypoint
+
+USER dockeruser
+
+# Entrypoint migrates + caches, then runs the given command (php-fpm). The scheduler
+# service overrides the entrypoint so only the web container migrates.
+ENTRYPOINT ["app-entrypoint"]
+CMD ["php-fpm"]

@@ -6,10 +6,14 @@ storage/framework/views/*
 storage/logs/*
 
 node_modules
+vendor
+public/build
+public/hot
 .docker
 Dockerfile
 Dockerfile.dist
 docker-compose.yml
 docker-compose.dist.yml
+.github
 .git/
 .env
