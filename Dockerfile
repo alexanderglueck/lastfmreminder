@@ -5,7 +5,7 @@ WORKDIR /app
 ADD https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions /usr/local/bin/
 
 RUN chmod +x /usr/local/bin/install-php-extensions && sync && \
-    install-php-extensions pdo_mysql bcmath pcntl zip gd imagick exif intl soap xdebug
+    install-php-extensions pdo_mysql bcmath pcntl zip gd imagick/imagick@3.8.1 exif intl soap xdebug
 
 RUN apt-get update -y && apt-get install -y sendmail optipng pngquant unzip
 
