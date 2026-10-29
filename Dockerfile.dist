@@ -8,7 +8,7 @@
 ########################################
 # Stage 1 — build Vite assets (Vite 7 needs node 20+)
 ########################################
-FROM node:20-bookworm-slim AS assets
+FROM node:24-bookworm-slim AS assets
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
