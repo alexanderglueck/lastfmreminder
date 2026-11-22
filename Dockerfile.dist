@@ -66,7 +66,7 @@ RUN chmod +x /usr/local/bin/app-entrypoint
 
 USER dockeruser
 
-# Entrypoint migrates + caches, then runs the given command (php-fpm). The scheduler
-# service overrides the entrypoint so only the web container migrates.
+# Entrypoint caches config/routes/views, then runs the given command (php-fpm).
+# The app has no database, so nothing is migrated.
 ENTRYPOINT ["app-entrypoint"]
 CMD ["php-fpm"]
